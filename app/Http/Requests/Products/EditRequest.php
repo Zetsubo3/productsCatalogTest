@@ -5,8 +5,9 @@ namespace App\Http\Requests\Products;
 use App\Contracts\Requests\FilterableRequestInterface;
 use App\Http\Requests\MainRequest;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Validation\Validator;
 
-class StoreRequest extends MainRequest implements FilterableRequestInterface
+class EditRequest extends MainRequest implements FilterableRequestInterface
 {
 
     /**
@@ -17,9 +18,9 @@ class StoreRequest extends MainRequest implements FilterableRequestInterface
     public function rules(): array
     {
         return [
-            'name' => 'required|string|min:2|max:255',
-            'price' => 'decimal:0,2|min:0|max:9999999999.99',
-            'category_id' => 'required|integer|min:1|max:9999999999',
+            'name' => 'nullable|string|min:2|max:255',
+            'price' => 'nullable|decimal:0,2|min:0|max:9999999999.99',
+            'category_id' => 'nullable|integer|min:1|max:9999999999',
         ];
     }
 
@@ -31,7 +32,6 @@ class StoreRequest extends MainRequest implements FilterableRequestInterface
     public function messages(): array
     {
         return [
-            'name.required' => 'The "name" parameter is required.',
             'name.string' => 'The "name" parameter must be a valid string.',
             'name.min' => 'The "name" parameter must be at least 2 characters.',
             'name.max' => 'The "name" parameter must not exceed 255 characters.',
@@ -40,11 +40,26 @@ class StoreRequest extends MainRequest implements FilterableRequestInterface
             'price.min' => 'The "price" parameter must be at least 0.',
             'price.max' => 'The "price" parameter must not exceed 9999999999.99.',
 
-            'category_id.required' => 'The "category_id" parameter is required.',
             'category_id.integer' => 'The "category_id" parameter must be an integer.',
             'category_id.min' => 'The "category_id" parameter must be at least 1.',
             'category_id.max' => 'The "category_id" parameter must not exceed 9999999999.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function ($validator) {
+            $hasName = !empty($this->name);
+            $hasPrice = $this->price !== null && $this->price !== '';
+            $hasCategoryId = !empty($this->category_id);
+
+            if (!$hasName && !$hasPrice && !$hasCategoryId) {
+                $validator->errors()->add(
+                    'fields',
+                    'At least one field (name, price, category_id) must be provided for update.'
+                );
+            }
+        });
     }
 
     public function getRequestParams(): array

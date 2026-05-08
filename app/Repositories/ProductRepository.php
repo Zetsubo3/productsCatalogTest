@@ -44,6 +44,7 @@ class ProductRepository implements ProductRepositoryInterface
 
     public function create(array $data): ProductDTO
     {
+        $data['price'] = $data['price'] ?? 0;
         $product = Product::query()->create($data);
         $product->load('category');
 

@@ -27,7 +27,7 @@ interface CrudServiceInterface
      * @param array $data
      * @return array
      */
-    public function update(int $id, array $data): array;
+    public function edit(int $id, array $data): array;
 
     /**
      * Удалить запись
