@@ -1,0 +1,229 @@
+{
+  "info": {
+    "_postman_id": "bb34c745-602c-4c26-b70f-51a63985ae89",
+    "name": "Каталог продуктов. Тестовое",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47354520",
+    "_collection_link": "https://go.postman.co/collection/47354520-bb34c745-602c-4c26-b70f-51a63985ae89?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Список товаров",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/products?page=1&count=5",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "products"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Номер страницы. Инт. Дефолт 1. Нулабл"
+            },
+            {
+              "key": "count",
+              "value": "5",
+              "description": "Кол-во на странице. Инт. Дефолт: 15. Нулабл"
+            },
+            {
+              "key": "category_id",
+              "value": "1",
+              "description": "Фильтр по айди категории. Инт. Нулабл",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "price_min",
+              "value": "700",
+              "description": "Фильтр по мин.цене. Флоат. Нулабл",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "price_max",
+              "value": "1100",
+              "description": "Фильтр по макс.цене. Флоат. Нулабл",
+              "disabled": true
+            },
+            {
+              "key": "name",
+              "value": "Лейк",
+              "description": "Поиск по имени. Стринг. Нулабл",
+              "type": "text",
+              "disabled": true
+            },
+            {
+              "key": "price_sort",
+              "value": "0",
+              "description": "Сортировка по цене. Енам: (0, false, desc), (1, true, asc). Нулабл",
+              "disabled": true
+            },
+            {
+              "key": "created_at_sort",
+              "value": "1",
+              "description": "Сортировка по дате. Енам: (0, false, desc), (1, true, asc). Нулабл",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Создать товар",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "xAfbhLKbQ4pj3ZlXfbdcILYrohNczPyOR0XS3tj5a282ac45",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "name",
+              "value": "Лопатка 26",
+              "description": "Название товара. Стринг. Обязательно. Уникально",
+              "type": "text",
+              "uuid": "682958d8-ad4e-4e76-8b1f-1acaa89c7f16"
+            },
+            {
+              "key": "price",
+              "value": "1140.40",
+              "description": "Цена. Флот. Дефолт: 0. Нулабл",
+              "type": "text",
+              "uuid": "af1a7c01-b1ac-42be-8bb5-b82ad12f1159"
+            },
+            {
+              "key": "category_id",
+              "value": "1",
+              "description": "Айди категории. Инт. Обязательно",
+              "type": "text",
+              "uuid": "3183c921-14bb-443b-92d5-02bd14757b2f"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/products",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "products"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Обновить товар",
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {
+          "content-type": true
+        }
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "d2ekEiqWdlg6gdxJGZWyo0hZ21JSr0fmmOSnv0Lo346e5b04",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"name\": \"Лопатка 28\", // Название товара. Стринг. Уникально. Нулабл\r\n    \"price\": 999.99, // Цена. Флот. Нулабл.\r\n    \"category_id\": 1 // Айди категории. Инт. Нулабл\r\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/products/3",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "products",
+            "3"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Удалить товар",
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {
+          "content-type": true
+        }
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "xAfbhLKbQ4pj3ZlXfbdcILYrohNczPyOR0XS3tj5a282ac45",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8000/api/products/2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8000",
+          "path": [
+            "api",
+            "products",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

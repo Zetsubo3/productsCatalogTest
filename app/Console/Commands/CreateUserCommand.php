@@ -37,7 +37,7 @@ class CreateUserCommand extends Command
         $this->newLine();
         $this->info('✓ Пользователь успешно создан');
         $this->newLine();
-        $this->info('Ваш API токен:');
+        $this->info('Ваш API токен (Bearer):');
         $this->line($token);
         $this->newLine();
         $this->warn('Запишите токен - он больше не отобразится');
