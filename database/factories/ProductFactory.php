@@ -17,6 +17,8 @@ class ProductFactory extends Factory
             'name' => $this->faker->unique()->word() . '_' . $this->faker->numberBetween(1, 99999),
             'price' => $this->faker->randomFloat(2, 10, 1000),
             'category_id' => Category::query()->inRandomOrder()->first()?->id ?? Category::factory(),
+            'created_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            'updated_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ];
     }
 }
