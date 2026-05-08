@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\CacheKeyService;
+use App\Services\CacheService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
@@ -18,12 +19,15 @@ class ProductCacheTest extends TestCase
     private Product $product;
     private User $user;
     private string $token;
+    private CacheService $cacheService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         Cache::flush();
+
+        $this->cacheService = new CacheService();
 
         $this->category = Category::factory()->create();
         $this->product = Product::factory()->create([
@@ -39,10 +43,6 @@ class ProductCacheTest extends TestCase
     /**
      * Тест проверяет, что ответ каталога товаров кэшируется
      *
-     * 1. Делает первый запрос к /api/products - ответ сохраняется в кэш
-     * 2. Удаляет товар из базы данных
-     * 3. Делает второй запрос — ответ должен быть таким же (из кэша)
-     *
      * @return void
      */
     public function test_caches_products_index_response(): void
@@ -55,7 +55,8 @@ class ProductCacheTest extends TestCase
         $response1 = $this->getJson('/api/products');
         $response1->assertStatus(200);
 
-        $this->assertNotNull(Cache::get($cacheKey));
+        $cachedValue = $this->cacheService->remember($cacheKey, 300, fn() => null, 'products');
+        $this->assertNotNull($cachedValue);
 
         $this->product->delete();
 
@@ -68,10 +69,6 @@ class ProductCacheTest extends TestCase
     /**
      * Тест проверяет инвалидацию кэша после создания товара
      *
-     * 1. Делает запрос к /api/products - наполняет кэш
-     * 2. Создаёт новый товар через POST /api/products
-     * 3. Проверяет, что кэш очищен
-     *
      * @return void
      */
     public function test_invalidates_cache_after_product_creation(): void
@@ -82,7 +79,9 @@ class ProductCacheTest extends TestCase
         ]);
 
         $this->getJson('/api/products');
-        $this->assertNotNull(Cache::get($cacheKey));
+
+        $cachedValue = $this->cacheService->remember($cacheKey, 300, fn() => null, 'products');
+        $this->assertNotNull($cachedValue);
 
         $newProduct = [
             'name' => 'New Test Product',
@@ -95,15 +94,12 @@ class ProductCacheTest extends TestCase
         ]);
         $response->assertStatus(201);
 
-        $this->assertNull(Cache::get($cacheKey));
+        $cachedValueAfter = $this->cacheService->remember($cacheKey, 300, fn() => null, 'products');
+        $this->assertNull($cachedValueAfter);
     }
 
     /**
      * Тест проверяет инвалидацию кэша после обновления товара
-     *
-     * 1. Делает запрос к /api/products - наполняет кэш
-     * 2. Обновляет товар через PUT /api/products/{id}
-     * 3. Проверяет, что кэш очищен
      *
      * @return void
      */
@@ -115,7 +111,9 @@ class ProductCacheTest extends TestCase
         ]);
 
         $this->getJson('/api/products');
-        $this->assertNotNull(Cache::get($cacheKey));
+
+        $cachedValue = $this->cacheService->remember($cacheKey, 300, fn() => null, 'products');
+        $this->assertNotNull($cachedValue);
 
         $updateData = [
             'name' => 'Updated Product Name',
@@ -128,15 +126,12 @@ class ProductCacheTest extends TestCase
         ]);
         $response->assertStatus(200);
 
-        $this->assertNull(Cache::get($cacheKey));
+        $cachedValueAfter = $this->cacheService->remember($cacheKey, 300, fn() => null, 'products');
+        $this->assertNull($cachedValueAfter);
     }
 
     /**
      * Тест проверяет инвалидацию кэша после удаления товара
-     *
-     * 1. Делает запрос к /api/products - наполняет кэш
-     * 2. Удаляет товар через DELETE /api/products/{id}
-     * 3. Проверяет, что кэш очищен
      *
      * @return void
      */
@@ -148,13 +143,16 @@ class ProductCacheTest extends TestCase
         ]);
 
         $this->getJson('/api/products');
-        $this->assertNotNull(Cache::get($cacheKey));
+
+        $cachedValue = $this->cacheService->remember($cacheKey, 300, fn() => null, 'products');
+        $this->assertNotNull($cachedValue);
 
         $response = $this->deleteJson("/api/products/{$this->product->id}", [], [
             'Authorization' => "Bearer {$this->token}"
         ]);
         $response->assertStatus(200);
 
-        $this->assertNull(Cache::get($cacheKey));
+        $cachedValueAfter = $this->cacheService->remember($cacheKey, 300, fn() => null, 'products');
+        $this->assertNull($cachedValueAfter);
     }
 }

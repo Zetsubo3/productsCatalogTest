@@ -10,21 +10,24 @@ use App\Services\CacheKeyService;
 
 class CachedProductRepository implements ProductRepositoryInterface
 {
-    private const CACHE_TTL = 300;
-
     public function __construct(
         private readonly ProductRepositoryInterface $decorated,
         private readonly CacheService $cacheService,
-        private readonly CacheKeyService $cacheKeyService
+        private readonly CacheKeyService $cacheKeyService,
+        private readonly int $cacheTtl = 300,
+        private readonly string $cacheTag = 'products'
     ) {}
 
     public function getPaginated(array $data): PaginatedResponseDTO
     {
         $key = $this->cacheKeyService->productsIndexKey($data);
 
-        return $this->cacheService->remember($key, self::CACHE_TTL, function () use ($data) {
-            return $this->decorated->getPaginated($data);
-        });
+        return $this->cacheService->remember(
+            key: $key,
+            ttl: $this->cacheTtl,
+            callback: fn() => $this->decorated->getPaginated($data),
+            tag: $this->cacheTag
+        );
     }
 
     public function findByKey(string $column, mixed $value): ?ProductDTO
@@ -35,7 +38,7 @@ class CachedProductRepository implements ProductRepositoryInterface
     public function create(array $data): ProductDTO
     {
         $result = $this->decorated->create($data);
-        $this->cacheService->forget();
+        $this->cacheService->forget($this->cacheTag);
         return $result;
     }
 
@@ -43,7 +46,7 @@ class CachedProductRepository implements ProductRepositoryInterface
     {
         $result = $this->decorated->update($id, $data);
         if ($result) {
-            $this->cacheService->forget();
+            $this->cacheService->forget($this->cacheTag);
         }
         return $result;
     }
@@ -52,7 +55,7 @@ class CachedProductRepository implements ProductRepositoryInterface
     {
         $result = $this->decorated->delete($id);
         if ($result) {
-            $this->cacheService->forget();
+            $this->cacheService->forget($this->cacheTag);
         }
         return $result;
     }
