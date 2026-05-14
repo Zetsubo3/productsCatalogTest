@@ -96,7 +96,7 @@ class ProductService extends MainService implements ProductServiceInterface
      * @return bool
      * @throws NotFoundHttpException
      */
-    public function delete(int $id): bool
+    public function delete(int $id): true
     {
         $deleted = $this->productRepository->delete($id);
 
