@@ -4,9 +4,13 @@ namespace App\Services;
 
 use App\Contracts\Repositories\CategoryRepositoryInterface;
 use App\Contracts\Repositories\ProductRepositoryInterface;
-use App\Contracts\Services\CrudServiceInterface;
+use App\Contracts\Services\ProductServiceInterface;
+use App\DTO\PaginatedResponseDTO;
+use App\DTO\ProductDTO;
+use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-class ProductService extends MainService implements CrudServiceInterface
+class ProductService extends MainService implements ProductServiceInterface
 {
     public function __construct(
         protected readonly ProductRepositoryInterface $productRepository,
@@ -17,97 +21,60 @@ class ProductService extends MainService implements CrudServiceInterface
      * Возвращает список товаров с пагинацией
      *
      * @param array $filterParams
-     * @return array
+     * @return PaginatedResponseDTO
      */
-    public function index(array $filterParams): array
+    public function index(array $filterParams): PaginatedResponseDTO
     {
-        $result = $this->productRepository->getPaginated($filterParams);
-
-        return $this->formatResponse(
-            success: true,
-            data: $result->toArray(),
-            message: 'Products have been successfully received',
-            errorCode: null,
-            httpStatus: 200
-        );
+        return $this->productRepository->getPaginated($filterParams);
     }
 
     /**
-     * Возвращает ответ о создании товара
+     * Создать новый товар
      *
      * @param array $data
-     * @return array
+     * @return ProductDTO
+     * @throws NotFoundHttpException
+     * @throws ConflictHttpException
      */
-    public function store(array $data): array
+    public function store(array $data): ProductDTO
     {
         $category = $this->categoryRepository->findByKey('id', $data['category_id']);
 
         if (!$category) {
-            return $this->formatResponse(
-                success: false,
-                data: null,
-                message: 'Category not found',
-                errorCode: 'CATEGORY_NOT_FOUND',
-                httpStatus: 404
-            );
+            throw new NotFoundHttpException('Category not found');
         }
 
         $existingProduct = $this->productRepository->findByKey('name', $data['name']);
 
         if ($existingProduct) {
-            return $this->formatResponse(
-                success: false,
-                data: null,
-                message: 'A product with that name already exists',
-                errorCode: 'PRODUCT_NAME_ALREADY_EXISTS',
-                httpStatus: 409
-            );
+            throw new ConflictHttpException('A product with that name already exists');
         }
 
-        $product = $this->productRepository->create($data);
-
-        return $this->formatResponse(
-            success: true,
-            data: $product->toArray(),
-            message: 'The product was successfully created',
-            errorCode: null,
-            httpStatus: 201
-        );
+        return $this->productRepository->create($data);
     }
 
     /**
-     * Возвращает ответ об обновлении товара
+     * Обновить товар
      *
      * @param int $id
      * @param array $data
-     * @return array
+     * @return ProductDTO
+     * @throws NotFoundHttpException
+     * @throws ConflictHttpException
      */
-    public function edit(int $id, array $data): array
+    public function edit(int $id, array $data): ProductDTO
     {
         $product = $this->productRepository->findByKey('id', $id);
 
         if (!$product) {
-            return $this->formatResponse(
-                success: false,
-                data: null,
-                message: 'The product not found',
-                errorCode: 'PRODUCT_NOT_FOUND',
-                httpStatus: 404
-            );
+            throw new NotFoundHttpException('The product not found');
         }
 
-        // Если обновляется name, проверяем уникальность (исключая текущий товар)
         if (isset($data['name'])) {
             $existingProduct = $this->productRepository->findByKey('name', $data['name']);
 
             if ($existingProduct && $existingProduct->id !== $id) {
-                return $this->formatResponse(
-                    success: false,
-                    data: null,
-                    message: 'A product with that name already exists',
-                    errorCode: 'PRODUCT_NAME_ALREADY_EXISTS',
-                    httpStatus: 409
-                );
+                throw new ConflictHttpException('A product with that name already exists');
             }
         }
 
@@ -115,53 +82,28 @@ class ProductService extends MainService implements CrudServiceInterface
             $category = $this->categoryRepository->findByKey('id', $data['category_id']);
 
             if (!$category) {
-                return $this->formatResponse(
-                    success: false,
-                    data: null,
-                    message: 'Category not found',
-                    errorCode: 'CATEGORY_NOT_FOUND',
-                    httpStatus: 404
-                );
+                throw new NotFoundHttpException('Category not found');
             }
         }
 
-        $updatedProduct = $this->productRepository->update($id, $data);
-
-        return $this->formatResponse(
-            success: true,
-            data: $updatedProduct->toArray(),
-            message: 'The product was successfully updated',
-            errorCode: null,
-            httpStatus: 200
-        );
+        return $this->productRepository->update($id, $data);
     }
 
     /**
-     * Возвращает ответ об удаление товара
+     * Удалить товар
      *
      * @param int $id
-     * @return array
+     * @return bool
+     * @throws NotFoundHttpException
      */
-    public function delete(int $id): array
+    public function delete(int $id): bool
     {
         $deleted = $this->productRepository->delete($id);
 
         if (!$deleted) {
-            return $this->formatResponse(
-                success: false,
-                data: null,
-                message: 'The product not found',
-                errorCode: 'PRODUCT_NOT_FOUND',
-                httpStatus: 404
-            );
+            throw new NotFoundHttpException('The product not found');
         }
 
-        return $this->formatResponse(
-            success: true,
-            data: null,
-            message: 'The product was successfully deleted',
-            errorCode: null,
-            httpStatus: 200
-        );
+        return true;
     }
 }

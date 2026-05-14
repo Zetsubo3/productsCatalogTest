@@ -3,8 +3,9 @@
 namespace App\Contracts\Services;
 
 use App\DTO\PaginatedResponseDTO;
+use App\DTO\ProductDTO;
 
-interface CrudServiceInterface
+interface ProductServiceInterface extends CrudServiceInterface
 {
     /**
      * Получить список с фильтрацией и пагинацией
@@ -18,18 +19,18 @@ interface CrudServiceInterface
      * Создать новую запись
      *
      * @param array $data
-     * @return object
+     * @return ProductDTO
      */
-    public function store(array $data): object;
+    public function store(array $data): ProductDTO;
 
     /**
      * Обновить запись
      *
      * @param int $id
      * @param array $data
-     * @return object
+     * @return ProductDTO
      */
-    public function edit(int $id, array $data): object;
+    public function edit(int $id, array $data): ProductDTO;
 
     /**
      * Удалить запись

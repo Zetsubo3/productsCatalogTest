@@ -22,20 +22,13 @@ class ProductController extends Controller
      */
     public function index(IndexRequest $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit(
-            methodName: 'index',
-            keys: [request()->ip()],
-            maxAttempts: 60,
-            decaySeconds: 60
-        );
-        if ($rateLimitResponse) {
-            return response()->json($rateLimitResponse)->setStatusCode(429);
-        }
-
         $filterParams = $request->getRequestParams();
-        $result = $this->productService->index($filterParams);
+        $paginatedDTO = $this->productService->index($filterParams);
 
-        return response()->json($result)->setStatusCode($result['http_status']);
+        return $this->formatResponse(
+            data: $paginatedDTO->toArray(),
+            message: 'Products have been successfully received',
+        );
     }
 
     /**
@@ -46,19 +39,14 @@ class ProductController extends Controller
      */
     public function store(StoreRequest $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit(
-            methodName: 'store',
-            keys: [request()->ip()],
-            maxAttempts: 20,
-            decaySeconds: 60
-        );
-        if ($rateLimitResponse) {
-            return response()->json($rateLimitResponse)->setStatusCode(429);
-        }
+        $data = $request->getRequestParams();
+        $productDTO = $this->productService->store($data);
 
-        $filterParams = $request->getRequestParams();
-        $result = $this->productService->store($filterParams);
-        return response()->json($result)->setStatusCode($result['http_status']);
+        return $this->formatResponse(
+            data: $productDTO->toArray(),
+            message: 'The product was successfully created',
+            statusCode: 201
+        );
     }
 
     /**
@@ -70,19 +58,13 @@ class ProductController extends Controller
      */
     public function edit(int $id, EditRequest $request): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit(
-            methodName: 'edit',
-            keys: [request()->ip()],
-            maxAttempts: 20,
-            decaySeconds: 60
-        );
-        if ($rateLimitResponse) {
-            return response()->json($rateLimitResponse)->setStatusCode(429);
-        }
+        $data = $request->getRequestParams();
+        $productDTO = $this->productService->edit($id, $data);
 
-        $filterParams = $request->getRequestParams();
-        $result = $this->productService->edit($id ,$filterParams);
-        return response()->json($result)->setStatusCode($result['http_status']);
+        return $this->formatResponse(
+            data: $productDTO->toArray(),
+            message: 'The product was successfully updated',
+        );
     }
 
     /**
@@ -93,17 +75,10 @@ class ProductController extends Controller
      */
     public function delete(int $id): JsonResponse
     {
-        $rateLimitResponse = $this->checkRateLimit(
-            methodName: 'delete',
-            keys: [request()->ip()],
-            maxAttempts: 20,
-            decaySeconds: 60
-        );
-        if ($rateLimitResponse) {
-            return response()->json($rateLimitResponse)->setStatusCode(429);
-        }
+        $this->productService->delete($id);
 
-        $result = $this->productService->delete($id);
-        return response()->json($result)->setStatusCode($result['http_status']);
+        return $this->formatResponse(
+            message: 'The product was successfully deleted',
+        );
     }
 }
